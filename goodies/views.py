@@ -1,4 +1,7 @@
 #coding: utf-8
+import types
+from goodies.utils import Tab
+
 __author__ = 'andrei'
 
 from django.views.generic.base import TemplateView, View
@@ -74,42 +77,44 @@ class TabbedViewMixin(object):
 
 
 class TabbedViewMixin(object):
-    tabs = None
-
     def have_tab(self, search_tab):
         for tab in self.tabs:
-            if tab[0] == search_tab:
+            if tab.slug == search_tab.strip():
                 return True
         return False
 
+    def prepare_tabs(self):
+        self._tabs = []
+        for tab in self.tabs:
+            self.add_tab(tab)
+
+    def add_tab(self, tab):
+        if isinstance(tab, type([])) or isinstance(tab, type(())):
+            if len(tab) == 6:
+                if isinstance(tab[6], types.BooleanType):
+                    if not tab[6]:
+                        return
+                else:
+                    if not tab[6](request=self.request):
+                        return
+            self._tabs.append(Tab(*tab))
+        elif isinstance(tab, type({})):
+            if "access_descriptor" in tab and not tab['access_descriptor'](request=self.request):
+                return
+            if not tab.get("access_flag", True):
+                return
+            self._tabs.append(Tab(**tab))
+
     def get_tabs(self, *args, **kwargs):
-        sorted(self.tabs, key=lambda tab: tab[4])
-        tabs = self.tabs
+        self.prepare_tabs()
+        self._tabs.sort(key=lambda tab: tab.order)
 
-        #logger.debug("%s role : %s" % (self.__class__.__name__, self.request.user.get_profile().rol))
+        active_tab = self._tabs[0].slug if len(self._tabs) else None
+        active_tab_get = self.request.GET.get("tab", active_tab)
+        if self.have_tab(active_tab_get):
+            active_tab = active_tab_get
 
-        tabs = [tab for tab in tabs if len(tab) == 6 and u"%s" % self.request.user.get_profile().rol in tab[5]]
-        #        new_tabs = []
-        #        for tab in tabs:
-        #            logger.debug("%s : potential users : %s" % (self.__class__.__name__, tab[5]))
-        #            if (u"%s" % self.request.user.get_profile().rol) in tab[5]:
-        #                new_tabs.append(tab)
-        #            else:
-        #                logger.debug("%s : user group not in list" % (self.__class__.__name__,))
-        #
-        #
-        #        tabs = new_tabs
-
-        #logger.debug("%s : tabs (after) : %s" % (self.__class__.__name__, tabs))
-
-        active_tab = ""
-        if len(tabs):
-            active_tab = tabs[0][0]
-        if self.request.GET.has_key("tab") and self.have_tab(self.request.GET.get("tab")):
-            active_tab = self.request.GET.get("tab")
-
-        #logger.debug("Active tab is %s" % active_tab)
-        return {"tabs": tabs, "active_tab": active_tab}
+        return {"tabs": self._tabs, "active_tab": active_tab}
 
 
 class GenericDeleteView(DeleteView):
@@ -125,28 +130,28 @@ class GenericDeleteView(DeleteView):
         return current
 
 
-class ScoutFileAjaxException(Exception):
-    def __init__(self, *args, **kwargs):
-        self.original_exception = kwargs.get('exception', None)
-        self.extra_message = kwargs.get("extra_message", None)
-
-    def to_response(self):
-        json_dict = {"original_exception": "%s" % self.original_exception, "extra_message": "%s" % self.extra_message}
-        return HttpResponse(json.dumps(json_dict), status=500, content_type="text/json")
-
-    @classmethod
-    def validation_compose(self, missing={}, errors={}, call=""):
-        return ScoutFileAjaxException(
-            extra_message="%s: Validation error, missing required params: %s, params that errored out %s" % (
-                call, missing, errors))
-
-    @classmethod
-    def generic_response(cls, e, stack_trace):
-        json_dict = {"status": "error", "exception": "%s" % e, "trace": "%s" % stack_trace}
-        return HttpResponse(json.dumps(json_dict), status=500, content_type="text/json")
-
-    def __unicode__(self):
-        return "Error: $s, %s" % (self.original_exception, self.extra_message)
+# class ScoutFileAjaxException(Exception):
+#     def __init__(self, *args, **kwargs):
+#         self.original_exception = kwargs.get('exception', None)
+#         self.extra_message = kwargs.get("extra_message", None)
+#
+#     def to_response(self):
+#         json_dict = {"original_exception": "%s" % self.original_exception, "extra_message": "%s" % self.extra_message}
+#         return HttpResponse(json.dumps(json_dict), status=500, content_type="text/json")
+#
+#     @classmethod
+#     def validation_compose(self, missing={}, errors={}, call=""):
+#         return ScoutFileAjaxException(
+#             extra_message="%s: Validation error, missing required params: %s, params that errored out %s" % (
+#                 call, missing, errors))
+#
+#     @classmethod
+#     def generic_response(cls, e, stack_trace):
+#         json_dict = {"status": "error", "exception": "%s" % e, "trace": "%s" % stack_trace}
+#         return HttpResponse(json.dumps(json_dict), status=500, content_type="text/json")
+#
+#     def __unicode__(self):
+#         return "Error: $s, %s" % (self.original_exception, self.extra_message)
 
 
 class JSONView(View):

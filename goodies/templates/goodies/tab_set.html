@@ -1,16 +1,15 @@
   <div class="tabbable">
 
   	<ul class="nav nav-tabs" id = "nav-menu">
-		{% for tab_slug, tab_name, tab_url, icon, order in tabs %}
-		
-			<li {% if tab_slug = active_tab %}class="active"{% endif %}><a href="#{{ tab_slug }}" data-toggle="tab" tab-link = "{{ tab_url }}">{% if icon %}<i class = "{{ icon }}"></i> {% endif %}{{ tab_name }}</a></li>
+		{% for tab in tabs %}
+			<li {% if tab.slug == active_tab %}class="active"{% endif %}><a href="#{{ tab.slug }}" data-toggle="tab" tab-link = "{{ tab.url }}">{% if tab.icon %}<i class = "{{ tab.icon }}"></i> {% endif %}{{ tab.name }}</a></li>
 		{% endfor %}
 	</ul>
   	
   	
   	<div class="tab-content">
-  	{% for tab_slug, tab_name, tab_url, icon, order in tabs %}
-	  	<div class="tab-pane {% if tab_slug = active_tab %}active{% endif %}" id="{{ tab_slug }}">
+    {% for tab in tabs %}
+	  	<div class="tab-pane {% if tab.slug = active_tab %}active{% endif %}" id="{{ tab.slug }}">
 	  	</div>
   	{% endfor %}
   	</div>
