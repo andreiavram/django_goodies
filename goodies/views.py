@@ -78,7 +78,7 @@ class TabbedViewMixin(object):
 
 class TabbedViewMixin(object):
     def have_tab(self, search_tab):
-        for tab in self.tabs:
+        for tab in self._tabs:
             if tab.slug == search_tab.strip():
                 return True
         return False
