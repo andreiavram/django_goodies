@@ -121,6 +121,7 @@ class PasswordResetForm(CrispyBaseForm):
 
         return email
 
+
 class BetterPasswordChangeForm(PasswordChangeForm):
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()

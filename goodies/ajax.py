@@ -1,3 +1,4 @@
+#coding: utf-8
 from django.db.models.fields import FieldDoesNotExist
 
 __author__ = 'andrei'
