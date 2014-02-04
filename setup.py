@@ -9,5 +9,6 @@ setup(
     author='Andrei Avram',
     author_email='andrei.avram@gmail.com',
     description='A collection of useful django views, forms, widgets that work with and around bootstrap to make building UIs easier',
-    install_requires=['Django>=1.4']
+    install_requires=['Django>=1.4', 'django-taggit', 'django-crispy-forms', 'django-dajax', 'django-dajaxice',
+                      'django-recaptcha']
 )

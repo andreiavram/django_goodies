@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block page_title %}
+	Confirmare ștergere - {{ object }}
+{% endblock %}
+
+{% block content %}
+	Sunteți sigur că vreți să ștergeți obiectul {{ object }}?
+	{% crispy form form.helper %}
+{% endblock %}

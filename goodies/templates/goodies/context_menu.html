@@ -1,0 +1,13 @@
+<ul class = "nav nav-list">
+	{% for nume, actiuni in context_menu.items %}
+		<li class = "nav-header">{{ nume }}</li>
+		{% for actiune in actiuni %}
+			<li {% if actiune.3 %}class='disabled'{% endif %}>
+				<a href = "{{ actiune.1 }}">
+					{% if actiune.2 %}<i class = "{{ actiune.2 }}"></i>{% endif %}
+					{{ actiune.0 }}
+				</a>
+			</li>
+		{% endfor %}
+	{% endfor %}
+</ul>

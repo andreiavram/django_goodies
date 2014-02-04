@@ -1,0 +1,16 @@
+<input id="id_{{ name }}"
+       data-current-value="{% for tag in value %}{{ tag.tag }}{% if not forloop.last %}|{% endif %}{% endfor %}"
+       data-field-name="{{ name }}" data-ajax-url="{% url generic:tag_list %}" type="text" name="{{ name }}"
+       placeholder="scrie tag-uri aici" class="tm-input"/>
+<div id="{{ name }}_tag_container">
+</div>
+{% if tags %}
+    <div class="tag_suggestions">
+        <strong>Tag-uri existente: </strong>
+        {% for tag in tags %}
+            <span class="tm-existing tm-tag tm-tag-small">
+                <a class = "tm-existing-item" href="#" data-target="#id_{{ name }}">{{ tag }}</a>
+            </span>
+        {% endfor %}
+    </div>
+{% endif %}

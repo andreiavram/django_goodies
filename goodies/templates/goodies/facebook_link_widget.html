@@ -1,0 +1,6 @@
+<div class ="input-append">
+<input id="id_{{ name }}" type="text" class="textinput textInput" name="{{ name }}"
+{% for attr, attr_value in attrs.items %}{{ attr }} = "{{ attr_value }}" {% endfor %}
+{% if value %}value="{{ value }}"{% endif %} />
+<span class = "add-on icon-facebook"></span>
+</div>
