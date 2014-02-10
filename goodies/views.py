@@ -55,25 +55,25 @@ class GenericTabDeleteJavaScript(GenericDeleteJavaScript):
         return current
 
 
-class TabbedViewMixin(object):
-    tabs = None
-
-    def have_tab(self, search_tab):
-        for tab in self.tabs:
-            if tab[0] == search_tab:
-                return True
-        return False
-
-    def get_tabs(self, *args, **kwargs):
-        sorted(self.tabs, key=lambda tab: tab[4])
-        tabs = self.tabs
-
-        active_tab = tabs[0][0]
-        if self.request.GET.has_key("tab") and self.have_tab(self.request.GET.get("tab")):
-            active_tab = self.request.GET.get("tab")
-
-        #logger.debug("Active tab is %s" % active_tab)
-        return {"tabs": tabs, "active_tab": active_tab}
+# class TabbedViewMixin(object):
+#     tabs = None
+#
+#     def have_tab(self, search_tab):
+#         for tab in self.tabs:
+#             if tab[0] == search_tab:
+#                 return True
+#         return False
+#
+#     def get_tabs(self, *args, **kwargs):
+#         sorted(self.tabs, key=lambda tab: tab[4])
+#         tabs = self.tabs
+#
+#         active_tab = tabs[0][0]
+#         if self.request.GET.has_key("tab") and self.have_tab(self.request.GET.get("tab")):
+#             active_tab = self.request.GET.get("tab")
+#
+#         #logger.debug("Active tab is %s" % active_tab)
+#         return {"tabs": tabs, "active_tab": active_tab}
 
 
 class TabbedViewMixin(object):
