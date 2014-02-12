@@ -90,6 +90,7 @@ class TabbedViewMixin(object):
 
     def add_tab(self, tab):
         if isinstance(tab, type([])) or isinstance(tab, type(())):
+            logger.debug("Adding tab from list {0}".format(tab))
             if len(tab) == 6:
                 if isinstance(tab[6], types.BooleanType):
                     if not tab[6]:
@@ -99,11 +100,14 @@ class TabbedViewMixin(object):
                         return
             self._tabs.append(Tab(*tab))
         elif isinstance(tab, type({})):
+            logger.debug("Adding tab from dict {0}".format(tab))
             if "access_descriptor" in tab and not tab['access_descriptor'](request=self.request):
                 return
             if not tab.get("access_flag", True):
                 return
             self._tabs.append(Tab(**tab))
+
+        logger.debug("Tabs: {0}".format(self._tabs))
 
     def get_tabs(self, *args, **kwargs):
         self.prepare_tabs()
