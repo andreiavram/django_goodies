@@ -11,4 +11,4 @@ register = template.Library()
 
 @register.simple_tag(takes_context = True)
 def context_menu(context):
-    return render_to_string("generic/context_menu.html", context)
+    return render_to_string("goodies/context_menu.html", context)
