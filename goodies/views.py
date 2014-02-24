@@ -169,7 +169,7 @@ class JSONView(View):
     def parse_json_data(self):
         try:
             json_dict = json.loads(self.request.body)
-        except json.JSONDecodeError, e:
+        except ValueError, e:
             json_dict = self.request.POST.dict()
         except Exception, e:
             json_dict = {}
