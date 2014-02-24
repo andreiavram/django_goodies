@@ -1,0 +1,6 @@
+<li {% if menu_item.disabled %}class='disabled'{% endif %}>
+<a href="{{ menu_item.url }}">
+    {% if menu_item.icon %}<i class="{{ menu_item.icon }}"></i>{% endif %}
+    {{ menu_item.title }}
+</a>
+</li>

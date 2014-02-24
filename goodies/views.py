@@ -1,9 +1,5 @@
 #coding: utf-8
 import types
-from goodies.utils import Tab
-
-__author__ = 'andrei'
-
 from django.views.generic.base import TemplateView, View
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic.list import ListView
@@ -17,6 +13,7 @@ import json
 import zipfile
 import os
 
+from goodies.tabs import Tab
 from goodies.forms import CrispyBaseDeleteForm
 
 
@@ -55,40 +52,26 @@ class GenericTabDeleteJavaScript(GenericDeleteJavaScript):
         return current
 
 
-# class TabbedViewMixin(object):
-#     tabs = None
-#
-#     def have_tab(self, search_tab):
-#         for tab in self.tabs:
-#             if tab[0] == search_tab:
-#                 return True
-#         return False
-#
-#     def get_tabs(self, *args, **kwargs):
-#         sorted(self.tabs, key=lambda tab: tab[4])
-#         tabs = self.tabs
-#
-#         active_tab = tabs[0][0]
-#         if self.request.GET.has_key("tab") and self.have_tab(self.request.GET.get("tab")):
-#             active_tab = self.request.GET.get("tab")
-#
-#         #logger.debug("Active tab is %s" % active_tab)
-#         return {"tabs": tabs, "active_tab": active_tab}
-
-
 class TabbedViewMixin(object):
+    tab_set = None
+
     def have_tab(self, search_tab):
+        if hasattr(self, "tab_set") and self.tab_set:
+            return self.tab_set.has_tab(search_tab)
+
         for tab in self._tabs:
             if tab.slug == search_tab.strip():
                 return True
         return False
 
     def prepare_tabs(self):
+        """ deprecated in favour of using the TabSet object """
         self._tabs = []
         for tab in self.tabs:
             self.add_tab(tab)
 
     def add_tab(self, tab):
+        """ deprecated in favour of the TabSet object """
         if isinstance(tab, type([])) or isinstance(tab, type(())):
             logger.debug("Adding tab from list {0}".format(tab))
             if len(tab) == 6:
@@ -109,7 +92,15 @@ class TabbedViewMixin(object):
 
         logger.debug("Tabs: {0}".format(self._tabs))
 
+    def get_context_contribution(self, *args, **kwargs):
+        return self.tab_set.get_context_contribution(self.request, *args, **kwargs)
+
     def get_tabs(self, *args, **kwargs):
+        """ deprecated in favor of using get_context_contribution """
+        if hasattr(self, "tab_set") and self.tab_set:
+            return self.tab_set.get_context_contribution(self.request, *args, **kwargs)
+
+        #   backward compatibility
         self.prepare_tabs()
         self._tabs.sort(key=lambda tab: tab.order)
 
@@ -134,28 +125,28 @@ class GenericDeleteView(DeleteView):
         return current
 
 
-# class ScoutFileAjaxException(Exception):
-#     def __init__(self, *args, **kwargs):
-#         self.original_exception = kwargs.get('exception', None)
-#         self.extra_message = kwargs.get("extra_message", None)
-#
-#     def to_response(self):
-#         json_dict = {"original_exception": "%s" % self.original_exception, "extra_message": "%s" % self.extra_message}
-#         return HttpResponse(json.dumps(json_dict), status=500, content_type="text/json")
-#
-#     @classmethod
-#     def validation_compose(self, missing={}, errors={}, call=""):
-#         return ScoutFileAjaxException(
-#             extra_message="%s: Validation error, missing required params: %s, params that errored out %s" % (
-#                 call, missing, errors))
-#
-#     @classmethod
-#     def generic_response(cls, e, stack_trace):
-#         json_dict = {"status": "error", "exception": "%s" % e, "trace": "%s" % stack_trace}
-#         return HttpResponse(json.dumps(json_dict), status=500, content_type="text/json")
-#
-#     def __unicode__(self):
-#         return "Error: $s, %s" % (self.original_exception, self.extra_message)
+class AjaxException(Exception):
+    def __init__(self, *args, **kwargs):
+        self.original_exception = kwargs.get('exception', None)
+        self.extra_message = kwargs.get("extra_message", None)
+
+    def to_response(self):
+        json_dict = {"original_exception": "%s" % self.original_exception, "extra_message": "%s" % self.extra_message}
+        return HttpResponse(json.dumps(json_dict), status=500, content_type="text/json")
+
+    @classmethod
+    def validation_compose(self, missing={}, errors={}, call=""):
+        return AjaxException(
+            extra_message="%s: Validation error, missing required params: %s, params that errored out %s" % (
+                call, missing, errors))
+
+    @classmethod
+    def generic_response(cls, e, stack_trace):
+        json_dict = {"status": "error", "exception": "%s" % e, "trace": "%s" % stack_trace}
+        return HttpResponse(json.dumps(json_dict), status=500, content_type="text/json")
+
+    def __unicode__(self):
+        return "Error: $s, %s" % (self.original_exception, self.extra_message)
 
 
 class JSONView(View):
@@ -166,10 +157,10 @@ class JSONView(View):
     def dispatch(self, request, *args, **kwargs):
         try:
             return super(JSONView, self).dispatch(request, *args, **kwargs)
-        except ScoutFileAjaxException, e:
+        except AjaxException, e:
             return e.to_response()
         except Exception, e:
-            return ScoutFileAjaxException.generic_response(e, traceback.format_exc())
+            return AjaxException.generic_response(e, traceback.format_exc())
 
     @property
     def params(self):
@@ -208,11 +199,11 @@ class JSONView(View):
                 if self.params.get(param).get("type", "optional") == "optional" and (kwargs.get(param) in ['', None]):
                     continue
                 self.cleaned_data[param] = validator(kwargs.get(param))
-            except ScoutFileAjaxException, e:
+            except AjaxException, e:
                 error_dict['error'].append((param, e))
 
         if len(error_dict['missing']) + len(error_dict['error']):
-            raise ScoutFileAjaxException.validation_compose(missing=error_dict['missing'],
+            raise AjaxException.validation_compose(missing=error_dict['missing'],
                                                             errors=error_dict['error'], call=self.__class__.__name__)
 
     def default_cleaner(self, value):
@@ -292,10 +283,23 @@ class ZipPackageMixin(object):
 
 
 class ContextMenuMixin(object):
-    def get_context_menu(self):
+    context_menu = None
+
+    def get_context_menu_data(self, **kwargs):
+        data = kwargs
+        if hasattr(self, "object") and self.object:
+            data['object'] = self.object
+        return data
+
+    def get_context_menu(self, **kwargs):
+        if hasattr(self, "context_menu"):
+            return self.context_menu.get_menu(**self.get_context_menu_data(**kwargs))
         raise ValueError(u"ContextMenuMixin requires that the method 'get_context_menu' is overridden")
 
     def process_context_menu(self, context_menu):
+        if self.context_menu:
+            return self.context_menu.get_context_contribution(self.request)
+
         for nume, actiuni in context_menu.items():
             actiuni[:] = [actiune for actiune in actiuni if
                           self.request.user.groups.filter(name__in=actiune[4]).count()]
@@ -303,6 +307,11 @@ class ContextMenuMixin(object):
                 del (context_menu[nume])
 
         return {"context_menu": context_menu}
+
+    def get_context_contribution(self, *args, **kwargs):
+        return self.context_menu.get_context_contribution(self.request, *args, **kwargs)
+
+
 
 class CalendarViewMixin(object):
     def events_context(self):
