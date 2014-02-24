@@ -71,6 +71,7 @@ class CrispyBaseDeleteForm(forms.ModelForm):
     has_cancel = False
 
     def __init__(self, *args, **kwargs):
+        super(CrispyBaseDeleteForm, self).__init(*args, **kwargs)
         self.helper = FormHelper()
 
         self.helper.form_id = "id_%s_form" % self.form_id if self.form_id is not None else "id_%s_form" % self.__class__.__name__.lower()
