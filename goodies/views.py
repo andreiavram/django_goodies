@@ -312,10 +312,25 @@ class ContextMenuMixin(object):
         return self.context_menu.get_context_contribution(self.request, *args, **kwargs)
 
 
+class ContextContributionMixin(object):
+    def get_context_data(self, **kwargs):
+        context_contribution = self.get_context_contribution(**kwargs)
+        return super(ContextContributionMixin, self).get_context_data(**context_contribution)
 
-class CalendarViewMixin(object):
+    def get_context_contribution(self, **kwargs):
+        return kwargs
+
+
+class CalendarViewMixin(ContextContributionMixin):
     def events_context(self):
-        return {"events_url" : self.get_events_url()}
+        return {"events_url": self.get_events_url()}
 
     def get_events_url(self):
         raise NotImplementedError()
+
+    def get_context_contribution(self, **kwargs):
+        kwargs['events_url'] = self.get_events_url()
+        return kwargs
+
+
+
