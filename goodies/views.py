@@ -282,7 +282,16 @@ class ZipPackageMixin(object):
             zf.close()
 
 
-class ContextMenuMixin(object):
+class ContextContributionMixin(object):
+    def get_context_data(self, **kwargs):
+        context_contribution = self.get_context_contribution(**kwargs)
+        return super(ContextContributionMixin, self).get_context_data(**context_contribution)
+
+    def get_context_contribution(self, **kwargs):
+        return kwargs
+
+
+class ContextMenuMixin(ContextContributionMixin):
     context_menu = None
 
     def get_context_menu_data(self, **kwargs):
@@ -310,15 +319,6 @@ class ContextMenuMixin(object):
 
     def get_context_contribution(self, *args, **kwargs):
         return self.context_menu.get_context_contribution(self.request, *args, **kwargs)
-
-
-class ContextContributionMixin(object):
-    def get_context_data(self, **kwargs):
-        context_contribution = self.get_context_contribution(**kwargs)
-        return super(ContextContributionMixin, self).get_context_data(**context_contribution)
-
-    def get_context_contribution(self, **kwargs):
-        return kwargs
 
 
 class CalendarViewMixin(ContextContributionMixin):

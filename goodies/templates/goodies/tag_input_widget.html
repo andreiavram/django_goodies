@@ -1,6 +1,6 @@
 <input id="id_{{ name }}"
        data-current-value="{% for tag in value %}{{ tag.tag }}{% if not forloop.last %}|{% endif %}{% endfor %}"
-       data-field-name="{{ name }}" data-ajax-url="{% url generic:tag_list %}" type="text" name="{{ name }}"
+       data-field-name="{{ name }}" data-ajax-url="{% url goodies:tag_list %}" type="text" name="{{ name }}"
        placeholder="scrie tag-uri aici" class="tm-input"/>
 <div id="{{ name }}_tag_container">
 </div>
