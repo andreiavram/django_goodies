@@ -218,7 +218,7 @@ class JSONView(View):
 
 class TagsJson(ListView):
     model = Tag
-    template_name = "generic/tags.json"
+    content_type = "application/json"
 
     def get_queryset(self):
         q = self.request.GET.get("q", None)
@@ -227,6 +227,10 @@ class TagsJson(ListView):
             qs = qs.filter(name__icontains=q)
 
         return qs
+
+    def render_to_response(self, context, **response_kwargs):
+        json_data = [{"name": t.name, "id": t.id} for t in self.get_queryset()]
+        return HttpResponse(json.dumps(json_data), content_type=self.content_type)
 
 
 class ZipPackageMixin(object):
@@ -292,33 +296,33 @@ class ContextContributionMixin(object):
 
 
 class ContextMenuMixin(ContextContributionMixin):
-    context_menu = None
+    menu_classes = {}
 
-    def get_context_menu_data(self, **kwargs):
+    def get_context_contribution(self, **kwargs):
         data = kwargs
-        if hasattr(self, "object") and self.object:
+        data["menus"] = self._menus
+        return data
+
+    def enforce_permissions(self, user=None, **kwargs):
+        for name, menu in self._menus.items():
+            menu.enforce_permissions(user, **kwargs)
+
+    def get_menu_kwargs(self, **kwargs):
+        data = kwargs
+        if "object" in self and self.object:
             data['object'] = self.object
         return data
 
-    def get_context_menu(self, **kwargs):
-        if hasattr(self, "context_menu"):
-            return self.context_menu.get_menu(**self.get_context_menu_data(**kwargs))
-        raise ValueError(u"ContextMenuMixin requires that the method 'get_context_menu' is overridden")
+    def get_menus(self, user=None, **kwargs):
+        generic_kwargs = self.get_menu_kwargs(**kwargs)
+        self._menus = {}
+        for name, cls in self.menu_classes.items():
+            menu_kwargs = generic_kwargs.copy()
+            if "get_%s_menu_kwargs" % name in self and callable(getattr(self, "get_%s_menu_kwargs" % name)):
+                menu_kwargs.update(getattr(self, "get_%s_menu_kwargs" % name)(**kwargs))
+                self._menus[name] = cls.build_menu(**menu_kwargs)
 
-    def process_context_menu(self, context_menu):
-        if self.context_menu:
-            return self.context_menu.get_context_contribution(self.request)
-
-        for nume, actiuni in context_menu.items():
-            actiuni[:] = [actiune for actiune in actiuni if
-                          self.request.user.groups.filter(name__in=actiune[4]).count()]
-            if not len(actiuni):
-                del (context_menu[nume])
-
-        return {"context_menu": context_menu}
-
-    def get_context_contribution(self, *args, **kwargs):
-        return self.context_menu.get_context_contribution(self.request, *args, **kwargs)
+        self.enforce_permissions(user, **kwargs)
 
 
 class CalendarViewMixin(ContextContributionMixin):

@@ -1,13 +1,39 @@
-<ul class = "nav nav-list">
-	{% for nume, actiuni in context_menu.items %}
-		<li class = "nav-header">{{ nume }}</li>
-		{% for actiune in actiuni %}
-			<li {% if actiune.3 %}class='disabled'{% endif %}>
-				<a href = "{{ actiune.1 }}">
-					{% if actiune.2 %}<i class = "{{ actiune.2 }}"></i>{% endif %}
-					{{ actiune.0 }}
-				</a>
-			</li>
-		{% endfor %}
-	{% endfor %}
-</ul>
+<!--<ul class = "nav nav-list">-->
+    <!--{% for item in menu_items %}-->
+        <!--{% if item.menu_type == "item" %}-->
+        <!--<li {% if item.disabled %}class='disabled'{% endif %}>-->
+            <!--<a href = "{{ item.url }}">{% if item.icon %}<i class = "{{ item.icon }}"></i>{% endif %}{{ item.title }}</a>-->
+        <!--</li>-->
+        <!--{% elif item.menu_type == "container" %}-->
+            <!--<li class = "nav-header">{% if item.icon %}<i class = "{{ item.icon }}"></i>{% endif %} {{ item.title }}</li>-->
+            <!--{% for i in item.menu_items %}-->
+                <!--{% with i as item %}-->
+                    <!--<li {% if item.disabled %}class='disabled'{% endif %}>-->
+                        <!--<a href = "{{ item.url }}">{% if item.icon %}<i class = "{{ item.icon }}"></i>{% endif %}{{ item.title }}</a>-->
+                    <!--</li>-->
+                <!--{% endwith %}-->
+            <!--{% endfor %}-->
+        <!--{% endif %}-->
+    <!--{% endfor %}-->
+<!--</ul>-->
+
+<div class = "menu-container">
+    {% for item in menu_items %}
+        {% if item.menu_type %} == "item" %}
+        <a href="{{ item.url }}" class="list-group-item {% if item.modifier %}list-group-item-{{ modifier }}{% endif %} {% if item.disabled %}disabled{% endif %} {% if item.active %}active{% endif %}">
+            {% if item.badge %}<span class = 'badge'>{{ badge }}</span>{% endif %} {% if item.icon %}<span class = "{{ item.icon }}"></span>{% endif %} {{ item.title }}Dapibus ac facilisis in</a>
+        {% elif item.menu_type == "container" %}
+        <div class="panel panel-default">
+            <div class="panel-heading">{% if item.icon %}<span class = "{{ item.icon }}"></span>{% endif %} {{ item.title }}</div>
+            <div class="list-group">
+                {% for i in item.menu_items %}
+                    {% with item as i %}
+                        <a href="{{ item.url }}" class="list-group-item {% if item.modifier %}list-group-item-{{ modifier }}{% endif %} {% if item.disabled %}disabled{% endif %} {% if item.active %}active{% endif %}">
+                            {% if item.badge %}<span class = 'badge'>{{ badge }}</span>{% endif %} {% if item.icon %}<span class = "{{ item.icon }}"></span>{% endif %} {{ item.title }}Dapibus ac facilisis in</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>

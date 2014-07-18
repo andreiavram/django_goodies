@@ -1,4 +1,5 @@
 from django.template.loader import render_to_string
+from django.utils.safestring import mark_safe
 
 __author__ = 'andrei'
 
@@ -6,65 +7,58 @@ __author__ = 'andrei'
 class ContextMenuItem(object):
     menu_type = "item"
 
-    def __init__(self, title, url=None, icon=None, disabled=False, access_descriptor=None, order=None):
+    def __init__(self, title, url=None, icon=None, disabled=False, access_descriptor=None, order=None, active=False, modifier=None, badge=None):
         self.title = title
         self.url = url
         self.icon = icon
         self.disabled = disabled
         self.access_descriptor = access_descriptor
         self.order = order if order else 0
-        self.rendered_html = ""
-
-    def render(self):
-        if self.rendered_html:
-            return self.rendered_html
-
-        self.rendered_html = render_to_string("goodies/context_menu_item.html", context={"menu_item": self})
-        return self.rendered_html
-
+        self.active = active
+        self.modifier = modifier
+        self.badge = badge
 
 class ContextMenuContainer(object):
     menu_type = "container"
 
-    def __init__(self, title, menu_items=[], icon=None, order=None):
-        self.menu_items = menu_items[:]
+    def __init__(self, title=None, menu_items=[], icon=None, order=None):
         self.title = title
         self.order = order if order else 0
-        self.rendered_html = ""
+        self.icon = icon
+
+        self.menu_items = []
+        for item in menu_items:
+            self.add_menu_item(item)
 
     def add_menu_item(self, item):
         self.menu_items.append(item)
         self.menu_items.sort(key=lambda i: i.order)
 
-    def render(self):
-        if self.rendered_html:
-            return self.rendered_html
-
-        self.rendered_html = render_to_string("goodies/context_menu_container.html", context={"menu_container": self})
-        return self.rendered_html
-
 
 class ContextMenu(object):
     menu_items = []
-    rendered_html = ""
+    type = "context"
 
     @classmethod
     def build_menu(cls, *args, **kwargs):
         return
 
-    @classmethod
-    def enforce_permissions(cls, request, *args, **kwargs):
+    def __init__(self, **kwargs):
+        return super(ContextMenu, self).__init__(**kwargs)
+
+    def enforce_permissions(self, request, *args, **kwargs):
         return
 
-    @classmethod
-    def render(cls):
-        if cls.rendered_html:
-            return cls.rendered_html
-        cls.rendered_html = render_to_string("goodies/context_menu_main.html", context={"menu": cls})
+    def render(self):
+        html = render_to_string(self.get_template(), context={"menu": self})
+        return mark_safe(html)
 
-    @classmethod
-    def get_context_contribution(cls, request, *args, **kwargs):
-        cls.build_menu(*args, **kwargs)
-        cls.enforce_permissions(request, *args, **kwargs)
+    def as_html(self):
+        return self.render()
 
-        return {"context_menu": cls}
+    def get_menu_type(self):
+        return self.type
+
+    def get_template(self):
+        return "goodies/%s_menu.html" % self.get_menu_type()
+
