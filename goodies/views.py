@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 import types
 from django.views.generic.base import TemplateView, View
 from django.contrib.contenttypes.models import ContentType
@@ -12,6 +12,7 @@ import traceback
 import json
 import zipfile
 import os
+from goodies.svg import output_svg_planner
 
 from goodies.tabs import Tab
 from goodies.forms import CrispyBaseDeleteForm
@@ -258,8 +259,6 @@ class ZipPackageMixin(object):
             zipfile_time = os.path.getmtime(self.zip_file_name())
 
         if newest_time > zipfile_time:
-            logger.info(u"Template %s needs to be refreshed, recreating the .zip file (old: %f, new: %f)" % (
-            self.nume, newest_time, zipfile_time))
             self.create_zip_file()
 
     def zip_url(self):
@@ -335,6 +334,3 @@ class CalendarViewMixin(ContextContributionMixin):
     def get_context_contribution(self, **kwargs):
         kwargs['events_url'] = self.get_events_url()
         return kwargs
-
-
-

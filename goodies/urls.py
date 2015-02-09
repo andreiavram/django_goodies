@@ -1,7 +1,7 @@
 __author__ = 'andrei'
 
 from django.conf.urls import patterns
-from goodies.views import TagsJson
+from goodies.views import TagsJson, TestPlanner
 from goodies.views import GenericDeleteJavaScript,\
     GenericTabDeleteJavaScript
 

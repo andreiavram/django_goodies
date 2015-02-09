@@ -18,6 +18,7 @@ class ContextMenuItem(object):
         self.modifier = modifier
         self.badge = badge
 
+
 class ContextMenuContainer(object):
     menu_type = "container"
 
@@ -44,13 +45,14 @@ class ContextMenu(object):
         return
 
     def __init__(self, **kwargs):
-        return super(ContextMenu, self).__init__(**kwargs)
+        self.request = kwargs.pop("request", None)
+        super(ContextMenu, self).__init__()
 
     def enforce_permissions(self, request, *args, **kwargs):
         return
 
     def render(self):
-        html = render_to_string(self.get_template(), context={"menu": self})
+        html = render_to_string(self.get_template(), {"menu": self})
         return mark_safe(html)
 
     def as_html(self):
