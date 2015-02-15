@@ -22,8 +22,9 @@ function generic_delete_{{ prefix }}(event) {
 	}
 	
 	if (confirm("Sunteți sigur că vreți să ștergeți această înregistrare?")) {
-		console.log(id_html);
-		Dajaxice.generic.delete_action(Dajax.process, {"obj_id" : id_html[1], "obj_ctype_id" : ctype_id, "prefix" : "{{ prefix }}"});
+        $.post("{% url "goodies:js_ajax_delete" %}",
+            {"obj_id" : id_html[1], "obj_ctype_id" : ctype_id, "prefix" : "{{ prefix }}"},
+            after_generic_delete_{{ prefix }})
 	};
 	
 	event.preventDefault();

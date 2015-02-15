@@ -12,6 +12,10 @@ import traceback
 import json
 import zipfile
 import os
+from rest_framework.views import APIView
+from rest_framework import permissions
+from rest_framework.response import Response
+
 from goodies.svg import output_svg_planner
 
 from goodies.tabs import Tab
@@ -44,6 +48,10 @@ class GenericDeleteJavaScript(TemplateView):
 
         current.update({"prefix": self.prefix})
         return current
+
+    def render_to_response(self, context, **response_kwargs):
+        response_kwargs['current_app'] = self.request.resolver_match.namespace
+        return super(GenericDeleteJavaScript, self).render_to_response(context, **response_kwargs)
 
 
 class GenericTabDeleteJavaScript(GenericDeleteJavaScript):
@@ -334,3 +342,44 @@ class CalendarViewMixin(ContextContributionMixin):
     def get_context_contribution(self, **kwargs):
         kwargs['events_url'] = self.get_events_url()
         return kwargs
+
+
+class GenericDeleteAPI(APIView):
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def post(self, request, format=None):
+        obj_id = request.data.get("obj_id")
+        obj_ctype_id = request.data.get("obj_ctype_id")
+
+        try:
+            self.delete_object(obj_id=obj_id, obj_ctype_id=obj_ctype_id)
+            data = {"error_msg": u"", "obj_id": obj_id}
+        except Exception, e:
+            data = {"error_msg": u"Nu am putut șterge obiectul. Contactați administratorul."}
+
+        return Response(data)
+
+    @staticmethod
+    def delete_object(obj_model=None, obj_id=None, obj=None, obj_ctype=None, obj_ctype_id=None):
+        if obj is None and ((obj_model is None and obj_ctype is None and obj_ctype_id is None) or obj_id is None):
+            raise ValueError(u"delete_object are nevoie fie de obiect, fie de tipul obiectului si ID")
+
+        try:
+            if obj is None:
+                if obj_model is None:
+                    if obj_ctype is None:
+                        obj_ctype = ContentType.objects.get(id=obj_ctype_id)
+                    obj_model = obj_ctype.model_class()
+
+                obj = obj_model.objects.get(id=int(obj_id))
+
+            if hasattr(obj, 'status'):
+                obj.status = 2
+                obj.save()
+            else:
+                obj.delete()
+
+            return True
+        except Exception, e:
+            logger.error(e)
+            raise Exception(u"Obiectul nu a putut fi șters - a intervenit o eroare generică.")
