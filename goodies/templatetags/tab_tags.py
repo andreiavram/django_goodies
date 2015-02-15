@@ -9,12 +9,9 @@ from django.template.loader import render_to_string
 
 register = template.Library()
 
-
+@register.inclusion_tag('goodies/tab_set.html')
 def print_tabs(tabs, active_tab):
     return {'tabs': tabs, 'active_tab': active_tab}
-
-
-register.inclusion_tag('goodies/tab_set.html')(print_tabs)
 
 
 @register.simple_tag(takes_context=True)
