@@ -1,5 +1,5 @@
 include LICENSE
 include README.md
 include TODO.md
-recursive-include goodies/templates/*
-recursive-include goodies/static/*
+recursive-include goodies/templates *
+recursive-include goodies/static *
