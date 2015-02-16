@@ -26,7 +26,7 @@ logger = logging.getLogger(__file__)
 
 
 class GenericDeleteJavaScript(TemplateView):
-    template_name = "generic/generic_delete.js"
+    template_name = "goodies/generic_delete.js"
 
     def dispatch(self, request, *args, **kwargs):
         self.ctype_model = kwargs.pop("model")
@@ -122,7 +122,7 @@ class TabbedViewMixin(object):
 
 
 class GenericDeleteView(DeleteView):
-    template_name = "generic/delete_form.html"
+    template_name = "goodies/delete_form.html"
 
     def delete(self, *args, **kwargs):
         messages.success(self.request, u"Obiectul a fost șters")
